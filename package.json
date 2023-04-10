@@ -1,6 +1,6 @@
 {
   "name": "stammesmanager-to-nextcloud",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Dieses Modul akzeptiert einen Nutzernamen, Passwort und ID und transferiert anschließend die Daten von Verbandonline zu einer Nextcloud.",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,8 @@
     "config": "^3.3.9",
     "dotenv": "^16.0.3",
     "nextcloud-node-client": "^1.8.1",
-    "verbandonline-node-api": "^1.0.5",
+    "stammesmanager-to-nextcloud": "^1.0.0",
+    "verbandonline-node-api": "file:../verbandonline-node-api",
     "winston": "^3.8.2"
   }
 }

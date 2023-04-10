@@ -29,6 +29,17 @@ const nextcloudServer = new nextcloud.Server({
 });
 const nextcloudClient = new nextcloud.Client(nextcloudServer);
 
+function getDisplayName(stama_res){
+    if(stama_res.hasOwnProperty("key_pfadfindername") && stama_res["key_pfadfindername"].trim() != ""){
+        return stama_res["key_pfadfindername"].trim();
+    } else if(stama_res.hasOwnProperty("vorname") && stama_res["vorname"].trim() != "" && 
+                stama_res.hasOwnProperty("nachname") && stama_res["nachname"].trim() != ""){
+        return stama_res["vorname"].trim() + " " + stama_res["nachname"].trim();
+    } else {
+        return stama_res["userlogin"];
+    }
+}
+
 exports.setLogger = function(_logger){
     logger = _logger;
 }
@@ -42,20 +53,25 @@ exports.setLogger = function(_logger){
  * @param {callback function(string)} err Error, wird nur bei Error gerufen
  */
 exports.transferUserToNextcloud = async function(usr, pwd, id, res, err){
-    logger.verbose("transferUserToNextcloud(" + usr + ", ***, " + id + ")");
+    logger.verbose("enter transferUserToNextcloud(" + usr + ", ***, " + id + ")");
+
     const user = await nextcloudClient.getUser(usr);
+    logger.debug("nextcloudClient got user " + user);
     if(user){
         // Es gibt den Nutzer bereits, deswegen ändern wir nur das Passwort
         logger.info("user " + usr + " already exists, so update the password");
         user.setPassword(pwd);
-        res("Der Nutzer " + usr + " existiert bereits. Das Passwort wurde ggf. angepasst.");
+        res("Der Nutzer " + usr + " existiert bereits. Das Passwort wurde angepasst.");
+
     } else {
         verbandonline.GetMember(id, async stama_res => {
             logger.info("Create new Nextcloud User " + usr + ", email: ${stama_res.p_email}");
+            
             const newUser = await nextcloudClient.createUser({"id": usr, "email": stama_res.p_email, "password": pwd, });
-            newUser.setDisplayName(usr);
+            newUser.setDisplayName(getDisplayName(stama_res));
             newUser.setQuota("1 GB");
             newUser.setLanguage("de");
+
             res("Nextcloudnutzer " + usr + " wurde erfolgreich angelegt.");
         }, stama_err => {
             logger.error("Informationen für den Nutzer ${usr} mit der ID ${id} konnten nicht abgerufen werden");
